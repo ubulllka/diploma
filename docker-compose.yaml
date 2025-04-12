@@ -1,0 +1,106 @@
+services:
+
+  auth-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+    ports:
+      - "127.0.0.1:5433:5432"
+
+  invent-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${INVENT_DB_USER}
+      POSTGRES_PASSWORD: ${INVENT_DB_PASSWORD}
+      POSTGRES_DB: ${INVENT_DB_NAME}
+    ports:
+      - "127.0.0.1:5434:5432"
+
+  report-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${REPORT_DB_USER}
+      POSTGRES_PASSWORD: ${REPORT_DB_PASSWORD}
+      POSTGRES_DB: ${REPORT_DB_NAME}
+    ports:
+      - "127.0.0.1:5435:5432"
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+#    ports:
+#      - "8081:8081"
+    depends_on:
+      - auth-db
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - DB_HOST=${AUTH_DB_HOST}
+      - DB_PORT=${AUTH_DB_PORT}
+      - DB_USER=${AUTH_DB_USER}
+      - DB_PASSWORD=${AUTH_DB_PASSWORD}
+      - DB_NAME=${AUTH_DB_NAME}
+    env_file:
+      - .env
+
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+#    ports:
+#      - "8082:8082"
+    depends_on:
+      - invent-db
+    environment:
+      - DB_HOST=${INVENT_DB_HOST}
+      - DB_PORT=${INVENT_DB_PORT}
+      - DB_USER=${INVENT_DB_USER}
+      - DB_PASSWORD=${INVENT_DB_PASSWORD}
+      - DB_NAME=${INVENT_DB_NAME}
+
+  reporting-service:
+    build:
+      context: ./reporting-service
+      dockerfile: Dockerfile
+#    ports:
+#      - "8083:8083"
+    depends_on:
+      - report-db
+    environment:
+      - DB_HOST=${REPORT_DB_HOST}
+      - DB_PORT=${REPORT_DB_PORT}
+      - DB_USER=${REPORT_DB_USER}
+      - DB_PASSWORD=${REPORT_DB_PASSWORD}
+      - DB_NAME=${REPORT_DB_NAME}
+
+  api-gateway:
+    build:
+      context: ./api-gateway  # Указываем путь к api-gateway
+      dockerfile: Dockerfile   # Используем Dockerfile в этой папке
+    ports:
+      - "8080:8080"            # Прокидываем порт 8080
+    depends_on:
+      - auth-service           # Зависимость от auth-service
+      - inventory-service      # Зависимость от inventory-service
+      - reporting-service      # Зависимость от reporting-service
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+    env_file:
+      - .env
+
+  himfront:
+    build:
+      context: ./himfront  # Укажи путь к папке фронта
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"           # 3000 — внешний порт, 80 — внутри контейнера (Nginx)
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+
+
+
+
+
