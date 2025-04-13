@@ -2,7 +2,7 @@ import axios from 'axios';
 import {AUTH_STORAGE_KEY} from '../constants/auth';
 
 export const api = axios.create({
-    baseURL: import.meta.env.REACT_APP_API_URL || 'http://localhost:8080',
+    baseURL: import.meta.env.REACT_APP_API_URL || 'http://193.124.33.206:8080',
 });
 
 // Добавляем токен к каждому запросу

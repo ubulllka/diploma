@@ -34,9 +34,10 @@ func (h *Handler) CreateUsage(c *gin.Context) {
 	}
 
 	input.TakingId = takingID
+	input.IssueTime = time.Now()
+
 	input.CreatedAt = time.Now()
 	input.UpdatedAt = time.Now()
-	input.IssueTime = time.Now()
 
 	if err := h.DB.Create(&input).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
